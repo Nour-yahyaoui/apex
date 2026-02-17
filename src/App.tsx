@@ -31,7 +31,7 @@ function Store() {
   const [showCart, setShowCart] = useState(false);
   const [orderSuccess, setOrderSuccess] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
-  const [activeTab, setActiveTab] = useState<"home" | "products">("home"); // Default to products
+  const [activeTab, setActiveTab] = useState<"home" | "products">("home");
 
   // Filter states
   const [searchQuery, setSearchQuery] = useState("");
@@ -43,6 +43,9 @@ function Store() {
   const [customerName, setCustomerName] = useState("");
   const [customerPhone, setCustomerPhone] = useState("");
   const [customerLocation, setCustomerLocation] = useState("");
+
+  // Stock validation error
+  const [stockError, setStockError] = useState<string | null>(null);
 
   useEffect(() => {
     getProducts().then((data) => {
@@ -82,11 +85,26 @@ function Store() {
     setFilteredProducts(result);
   }, [searchQuery, selectedCategory, products]);
 
+  // Clear stock error when cart changes
+  useEffect(() => {
+    setStockError(null);
+  }, [cart]);
+
   const cartCount = cart.reduce((sum, item) => sum + item.quantity, 0);
 
   const addToCart = (product: Product) => {
     setCart((prevCart) => {
       const existing = prevCart.find((item) => item.product.id === product.id);
+      const currentQuantity = existing ? existing.quantity : 0;
+      
+      // Check if adding one more would exceed stock
+      if (currentQuantity + 1 > product.stock) {
+        setStockError(`Sorry, only ${product.stock} item(s) available for "${product.name}"`);
+        return prevCart;
+      }
+      
+      setStockError(null);
+      
       if (existing) {
         return prevCart.map((item) =>
           item.product.id === product.id
@@ -102,6 +120,7 @@ function Store() {
     setCart((prevCart) =>
       prevCart.filter((item) => item.product.id !== productId),
     );
+    setStockError(null);
   };
 
   const updateQuantity = (productId: number, newQuantity: number) => {
@@ -109,13 +128,22 @@ function Store() {
       removeFromCart(productId);
       return;
     }
-    setCart((prevCart) =>
-      prevCart.map((item) =>
+    
+    setCart((prevCart) => {
+      const item = prevCart.find((item) => item.product.id === productId);
+      if (item && newQuantity > item.product.stock) {
+        setStockError(`Sorry, only ${item.product.stock} item(s) available for "${item.product.name}"`);
+        return prevCart;
+      }
+      
+      setStockError(null);
+      
+      return prevCart.map((item) =>
         item.product.id === productId
           ? { ...item, quantity: newQuantity }
           : item,
-      ),
-    );
+      );
+    });
   };
 
   const getCartTotal = () => {
@@ -125,9 +153,24 @@ function Store() {
     );
   };
 
+  const validateStock = (): boolean => {
+    for (const item of cart) {
+      if (item.quantity > item.product.stock) {
+        setStockError(`Sorry, only ${item.product.stock} item(s) available for "${item.product.name}"`);
+        return false;
+      }
+    }
+    return true;
+  };
+
   const placeAllOrders = async (e: React.FormEvent) => {
     e.preventDefault();
     if (cart.length === 0) return;
+
+    // Validate stock before placing orders
+    if (!validateStock()) {
+      return;
+    }
 
     try {
       for (const item of cart) {
@@ -151,6 +194,7 @@ function Store() {
         setCustomerName("");
         setCustomerPhone("");
         setCustomerLocation("");
+        setStockError(null);
       }, 3000);
     } catch (error) {
       alert("Order failed. Please try again.");
@@ -453,9 +497,7 @@ function Store() {
                       : "bg-red-50 text-red-500"
                   }`}
                 >
-                  {selectedProduct.stock > 0
-                    ? `${selectedProduct.stock} in stock`
-                    : "Out of stock"}
+                  {selectedProduct.stock > 0 ? "In stock" : "Out of stock"}
                 </span>
               </div>
 
@@ -477,18 +519,12 @@ function Store() {
                     <span className="text-xs text-gray-500">Stock Status</span>
                     <p
                       className={`font-medium ${
-                        selectedProduct.stock > 10
+                        selectedProduct.stock > 0
                           ? "text-green-600"
-                          : selectedProduct.stock > 0
-                            ? "text-orange-600"
-                            : "text-red-600"
+                          : "text-red-600"
                       }`}
                     >
-                      {selectedProduct.stock > 10
-                        ? "In Stock"
-                        : selectedProduct.stock > 0
-                          ? "Low Stock"
-                          : "Out of Stock"}
+                      {selectedProduct.stock > 0 ? "In Stock" : "Out of Stock"}
                     </p>
                   </div>
                 </div>
@@ -550,6 +586,12 @@ function Store() {
             </div>
           )}
 
+          {stockError && (
+            <div className="mb-3 p-2 bg-red-50 border border-red-200 rounded text-xs text-red-600">
+              {stockError}
+            </div>
+          )}
+
           {cart.length === 0 ? (
             <div className="text-center py-8 border border-gray-200 rounded">
               <ShoppingCart className="w-8 h-8 mx-auto text-gray-300 mb-2" />
@@ -565,56 +607,64 @@ function Store() {
             <>
               {/* Mobile Cart Items */}
               <div className="space-y-2 md:hidden">
-                {cart.map((item) => (
-                  <div
-                    key={item.product.id}
-                    className="border border-gray-200 rounded p-3"
-                  >
-                    <div className="flex justify-between items-start mb-2">
-                      <div>
-                        <h3 className="text-sm font-medium text-gray-800">
-                          {item.product.name}
-                        </h3>
-                        <p className="text-xs text-gray-500">
-                          ${item.product.sell_price} each
-                        </p>
+                {cart.map((item) => {
+                  const maxStock = item.product.stock;
+                  return (
+                    <div
+                      key={item.product.id}
+                      className="border border-gray-200 rounded p-3"
+                    >
+                      <div className="flex justify-between items-start mb-2">
+                        <div>
+                          <h3 className="text-sm font-medium text-gray-800">
+                            {item.product.name}
+                          </h3>
+                          <p className="text-xs text-gray-500">
+                            ${item.product.sell_price} each
+                          </p>
+                        </div>
+                        <button
+                          onClick={() => removeFromCart(item.product.id)}
+                          className="text-gray-400 hover:text-red-500"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
                       </div>
-                      <button
-                        onClick={() => removeFromCart(item.product.id)}
-                        className="text-gray-400 hover:text-red-500"
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>
-                    </div>
 
-                    <div className="flex justify-between items-center">
-                      <div className="flex items-center gap-2 border border-gray-200 rounded">
-                        <button
-                          onClick={() =>
-                            updateQuantity(item.product.id, item.quantity - 1)
-                          }
-                          className="p-1 hover:bg-gray-50"
-                        >
-                          <Minus className="w-3 h-3 text-gray-600" />
-                        </button>
-                        <span className="w-6 text-center text-xs">
-                          {item.quantity}
+                      <div className="flex justify-between items-center">
+                        <div className="flex items-center gap-2 border border-gray-200 rounded">
+                          <button
+                            onClick={() =>
+                              updateQuantity(item.product.id, item.quantity - 1)
+                            }
+                            className="p-1 hover:bg-gray-50"
+                          >
+                            <Minus className="w-3 h-3 text-gray-600" />
+                          </button>
+                          <span className="w-6 text-center text-xs">
+                            {item.quantity}
+                          </span>
+                          <button
+                            onClick={() =>
+                              updateQuantity(item.product.id, item.quantity + 1)
+                            }
+                            disabled={item.quantity >= maxStock}
+                            className={`p-1 ${
+                              item.quantity >= maxStock
+                                ? "text-gray-300 cursor-not-allowed"
+                                : "hover:bg-gray-50 text-gray-600"
+                            }`}
+                          >
+                            <Plus className="w-3 h-3" />
+                          </button>
+                        </div>
+                        <span className="text-sm font-medium">
+                          ${(item.product.sell_price * item.quantity).toFixed(2)}
                         </span>
-                        <button
-                          onClick={() =>
-                            updateQuantity(item.product.id, item.quantity + 1)
-                          }
-                          className="p-1 hover:bg-gray-50"
-                        >
-                          <Plus className="w-3 h-3 text-gray-600" />
-                        </button>
                       </div>
-                      <span className="text-sm font-medium">
-                        ${(item.product.sell_price * item.quantity).toFixed(2)}
-                      </span>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
 
                 <div className="border border-gray-200 rounded p-3 bg-gray-50">
                   <div className="flex justify-between items-center">
@@ -649,60 +699,68 @@ function Store() {
                     </tr>
                   </thead>
                   <tbody>
-                    {cart.map((item) => (
-                      <tr
-                        key={item.product.id}
-                        className="border-b border-gray-100"
-                      >
-                        <td className="p-2 text-sm text-gray-800">
-                          {item.product.name}
-                        </td>
-                        <td className="p-2 text-sm">
-                          ${item.product.sell_price}
-                        </td>
-                        <td className="p-2">
-                          <div className="flex items-center gap-1 border border-gray-200 rounded w-fit">
+                    {cart.map((item) => {
+                      const maxStock = item.product.stock;
+                      return (
+                        <tr
+                          key={item.product.id}
+                          className="border-b border-gray-100"
+                        >
+                          <td className="p-2 text-sm text-gray-800">
+                            {item.product.name}
+                          </td>
+                          <td className="p-2 text-sm">
+                            ${item.product.sell_price}
+                          </td>
+                          <td className="p-2">
+                            <div className="flex items-center gap-1 border border-gray-200 rounded w-fit">
+                              <button
+                                onClick={() =>
+                                  updateQuantity(
+                                    item.product.id,
+                                    item.quantity - 1,
+                                  )
+                                }
+                                className="p-0.5 hover:bg-gray-50"
+                              >
+                                <Minus className="w-3 h-3" />
+                              </button>
+                              <span className="w-6 text-center text-xs">
+                                {item.quantity}
+                              </span>
+                              <button
+                                onClick={() =>
+                                  updateQuantity(
+                                    item.product.id,
+                                    item.quantity + 1,
+                                  )
+                                }
+                                disabled={item.quantity >= maxStock}
+                                className={`p-0.5 ${
+                                  item.quantity >= maxStock
+                                    ? "text-gray-300 cursor-not-allowed"
+                                    : "hover:bg-gray-50"
+                                }`}
+                              >
+                                <Plus className="w-3 h-3" />
+                              </button>
+                            </div>
+                          </td>
+                          <td className="p-2 text-sm font-medium">
+                            $
+                            {(item.product.sell_price * item.quantity).toFixed(2)}
+                          </td>
+                          <td className="p-2">
                             <button
-                              onClick={() =>
-                                updateQuantity(
-                                  item.product.id,
-                                  item.quantity - 1,
-                                )
-                              }
-                              className="p-0.5 hover:bg-gray-50"
+                              onClick={() => removeFromCart(item.product.id)}
+                              className="text-gray-400 hover:text-red-500"
                             >
-                              <Minus className="w-3 h-3" />
+                              <Trash2 className="w-3.5 h-3.5" />
                             </button>
-                            <span className="w-6 text-center text-xs">
-                              {item.quantity}
-                            </span>
-                            <button
-                              onClick={() =>
-                                updateQuantity(
-                                  item.product.id,
-                                  item.quantity + 1,
-                                )
-                              }
-                              className="p-0.5 hover:bg-gray-50"
-                            >
-                              <Plus className="w-3 h-3" />
-                            </button>
-                          </div>
-                        </td>
-                        <td className="p-2 text-sm font-medium">
-                          $
-                          {(item.product.sell_price * item.quantity).toFixed(2)}
-                        </td>
-                        <td className="p-2">
-                          <button
-                            onClick={() => removeFromCart(item.product.id)}
-                            className="text-gray-400 hover:text-red-500"
-                          >
-                            <Trash2 className="w-3.5 h-3.5" />
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
+                          </td>
+                        </tr>
+                      );
+                    })}
                     <tr className="bg-gray-50">
                       <td
                         colSpan={3}
@@ -753,7 +811,12 @@ function Store() {
                   />
                   <button
                     type="submit"
-                    className="w-full py-2.5 bg-gray-800 text-white text-sm font-medium rounded hover:bg-gray-700 transition-colors"
+                    disabled={cart.some(item => item.quantity > item.product.stock)}
+                    className={`w-full py-2.5 text-sm font-medium rounded transition-colors ${
+                      cart.some(item => item.quantity > item.product.stock)
+                        ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                        : "bg-gray-800 text-white hover:bg-gray-700"
+                    }`}
                   >
                     Place Order ({cart.length} items)
                   </button>
@@ -930,9 +993,7 @@ function Store() {
                               : "bg-red-50 text-red-500"
                           }`}
                         >
-                          {product.stock > 0
-                            ? `${product.stock} in stock`
-                            : "Out of stock"}
+                          {product.stock > 0 ? "In stock" : "Out of stock"}
                         </span>
                       </div>
 
