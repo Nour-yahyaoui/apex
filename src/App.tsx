@@ -16,6 +16,18 @@ import {
   ChevronRight,
   Home,
   Grid,
+  Sparkles,
+  TrendingUp,
+  Clock,
+  Star,
+  Truck,
+  Shield,
+  RefreshCw,
+  HeadphonesIcon,
+  ShoppingBag,
+  Gift,
+  Tag,
+  Zap,
 } from "lucide-react";
 
 interface CartItem {
@@ -325,84 +337,336 @@ function Store() {
     </footer>
   );
 
-  // Home View Component
-  const HomeView = () => (
-    <div className="space-y-6">
-      {/* Hero Section */}
-      <div className="bg-gradient-to-r from-gray-900 to-gray-700 text-white rounded-lg p-6">
-        <h2 className="text-xl font-bold mb-2">Welcome to Our Shop</h2>
-        <p className="text-sm text-gray-200 mb-4">
-          Discover amazing products at great prices
-        </p>
-        <button
-          onClick={() => setActiveTab("products")}
-          className="bg-white text-gray-900 px-4 py-2 rounded text-sm font-medium hover:bg-gray-100 transition-colors"
-        >
-          Shop Now
-        </button>
-      </div>
+  // Redesigned Home View with Animated Hero Section
+  const HomeView = () => {
+    // Get new arrivals (first 4 products)
+    const newArrivals = products.slice(0, 4);
+    
+    // Get popular products (next 4 products or same if not enough)
+    const popularProducts = products.slice(4, 8).length > 0 ? products.slice(4, 8) : products.slice(0, 4);
 
-      {/* Featured Categories */}
-      <div>
-        <h3 className="text-sm font-semibold mb-3">Featured Categories</h3>
-        <div className="grid grid-cols-2 gap-2">
-          {categories.slice(0, 4).map((category) => (
-            <button
-              key={category}
-              onClick={() => {
-                setSelectedCategory(category);
-                setActiveTab("products");
-              }}
-              className="border border-gray-200 rounded p-3 text-center hover:border-gray-400 transition-colors"
-            >
-              <span className="text-xs font-medium text-gray-800">
-                {category}
-              </span>
-            </button>
-          ))}
-        </div>
-      </div>
+    // Floating animation for elements
+    const floatingAnimation = "animate-float";
+    const pulseAnimation = "animate-pulse-slow";
 
-      {/* Featured Products */}
-      <div>
-        <h3 className="text-sm font-semibold mb-3">Featured Products</h3>
-        <div className="space-y-2">
-          {products.slice(0, 3).map((product) => (
-            <div
-              key={product.id}
-              className="border border-gray-200 rounded p-3 flex items-center gap-3"
-            >
-              <div className="w-16 h-16 bg-gray-50 rounded overflow-hidden flex-shrink-0">
-                {product.image_url ? (
-                  <img
-                    src={product.image_url}
-                    alt={product.name}
-                    className="w-full h-full object-cover"
-                  />
-                ) : (
-                  <Package className="w-6 h-6 m-5 text-gray-300" />
-                )}
+    return (
+      <div className="space-y-10 pb-8">
+        {/* Animated Hero Section */}
+        <div className="relative overflow-hidden rounded-3xl bg-black">
+          {/* Animated background elements */}
+          <div className="absolute inset-0 opacity-20">
+            <div className="absolute top-0 left-0 w-64 h-64 bg-white rounded-full mix-blend-overlay filter blur-3xl animate-pulse"></div>
+            <div className="absolute bottom-0 right-0 w-96 h-96 bg-yellow-300 rounded-full mix-blend-overlay filter blur-3xl animate-pulse delay-1000"></div>
+            <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-80 h-80 bg-pink-300 rounded-full mix-blend-overlay filter blur-3xl animate-pulse delay-500"></div>
+          </div>
+
+          {/* Floating shopping elements */}
+          <div className={`absolute top-10 left-10 text-white/20 ${floatingAnimation}`}>
+            <ShoppingBag className="w-16 h-16" />
+          </div>
+          <div className={`absolute bottom-10 right-10 text-white/20 ${floatingAnimation} delay-300`}>
+            <Gift className="w-20 h-20" />
+          </div>
+          <div className={`absolute top-20 right-20 text-white/20 ${floatingAnimation} delay-700`}>
+            <Tag className="w-12 h-12" />
+          </div>
+          <div className={`absolute bottom-20 left-20 text-white/20 ${floatingAnimation} delay-1000`}>
+            <Zap className="w-14 h-14" />
+          </div>
+
+          {/* Floating product cards */}
+          <div className={`absolute top-32 right-32 bg-white/10 backdrop-blur-lg rounded-xl p-3 ${floatingAnimation} hidden lg:block`}>
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 bg-white/20 rounded"></div>
+              <div>
+                <div className="w-16 h-2 bg-white/20 rounded mb-1"></div>
+                <div className="w-12 h-2 bg-white/20 rounded"></div>
               </div>
-              <div className="flex-1">
-                <h4 className="text-sm font-medium text-gray-900">
-                  {product.name}
-                </h4>
-                <p className="text-xs text-gray-500 mt-1">
-                  ${product.sell_price}
-                </p>
-              </div>
-              <button
-                onClick={() => setSelectedProduct(product)}
-                className="text-xs text-gray-600 border border-gray-200 rounded px-2 py-1 hover:bg-gray-50"
-              >
-                View
-              </button>
             </div>
-          ))}
+          </div>
+          
+          <div className={`absolute bottom-32 left-32 bg-white/10 backdrop-blur-lg rounded-xl p-3 ${floatingAnimation} delay-500 hidden lg:block`}>
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 bg-white/20 rounded"></div>
+              <div>
+                <div className="w-16 h-2 bg-white/20 rounded mb-1"></div>
+                <div className="w-12 h-2 bg-white/20 rounded"></div>
+              </div>
+            </div>
+          </div>
+
+          {/* Hero content */}
+          <div className="relative px-6 py-12 md:py-16 lg:py-20 text-white">
+            <div className="max-w-4xl mx-auto text-center">
+              {/* Animated badge */}
+              <div className={`inline-flex items-center gap-2 bg-white/20 backdrop-blur-lg rounded-full px-4 py-2 mb-6 ${pulseAnimation}`}>
+                <Sparkles className="w-4 h-4 text-yellow-300" />
+                <span className="text-sm font-medium">Welcome to the future of shopping</span>
+              </div>
+
+              {/* Main heading with animation */}
+              <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-4">
+                <span className="inline-block animate-slideInLeft">Discover</span>{" "}
+                <span className="inline-block animate-slideInRight bg-gradient-to-r from-yellow-300 to-pink-300 text-transparent bg-clip-text">
+                  Amazing Deals
+                </span>
+                <br />
+                <span className="inline-block animate-slideInUp delay-300">
+                  On Premium Products
+                </span>
+              </h1>
+
+              {/* Description with fade animation */}
+              <p className="text-lg md:text-xl text-gray-200 mb-8 max-w-2xl mx-auto animate-fadeIn delay-500">
+                Shop the latest trends with exclusive discounts and free shipping on orders over $50
+              </p>
+
+              {/* CTA Buttons with hover animations */}
+              <div className="flex flex-col sm:flex-row gap-4 justify-center items-center animate-fadeInUp delay-700">
+                <button
+                  onClick={() => setActiveTab("products")}
+                  className="group relative px-8 py-3 bg-white text-gray-900 rounded-full font-medium overflow-hidden transition-all hover:shadow-xl hover:scale-105"
+                >
+                  <span className="relative z-10">Start Shopping</span>
+                  <div className="absolute inset-0 bg-gradient-to-r from-yellow-300 to-pink-300 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                </button>
+                
+                <button
+                  onClick={() => {
+                    // Scroll to featured products
+                    document.getElementById('featured-products')?.scrollIntoView({ behavior: 'smooth' });
+                  }}
+                  className="group px-8 py-3 bg-transparent text-white rounded-full font-medium border-2 border-white/50 hover:border-white transition-all hover:bg-white/10"
+                >
+                  <span className="flex items-center gap-2">
+                    Explore Now
+                    <ChevronDown className="w-4 h-4 group-hover:animate-bounce" />
+                  </span>
+                </button>
+              </div>
+
+              {/* Floating stats */}
+              <div className="grid grid-cols-3 gap-4 max-w-md mx-auto mt-8">
+                <div className="text-center animate-fadeInUp delay-1000">
+                  <div className="text-2xl font-bold">10k+</div>
+                  <div className="text-xs text-gray-300">Products</div>
+                </div>
+                <div className="text-center animate-fadeInUp delay-1100">
+                  <div className="text-2xl font-bold">5k+</div>
+                  <div className="text-xs text-gray-300">Happy Customers</div>
+                </div>
+                <div className="text-center animate-fadeInUp delay-1200">
+                  <div className="text-2xl font-bold">24/7</div>
+                  <div className="text-xs text-gray-300">Support</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Features Section - Minimal Grid */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="flex items-start gap-3 p-4 bg-gray-50 rounded-xl hover:shadow-md transition-all hover:-translate-y-1">
+            <Truck className="w-5 h-5 text-gray-700 flex-shrink-0" />
+            <div>
+              <h3 className="font-medium text-sm text-gray-900">Free Shipping</h3>
+              <p className="text-xs text-gray-500">On orders over $50</p>
+            </div>
+          </div>
+          <div className="flex items-start gap-3 p-4 bg-gray-50 rounded-xl hover:shadow-md transition-all hover:-translate-y-1">
+            <Shield className="w-5 h-5 text-gray-700 flex-shrink-0" />
+            <div>
+              <h3 className="font-medium text-sm text-gray-900">Secure Payment</h3>
+              <p className="text-xs text-gray-500">100% protected</p>
+            </div>
+          </div>
+          <div className="flex items-start gap-3 p-4 bg-gray-50 rounded-xl hover:shadow-md transition-all hover:-translate-y-1">
+            <RefreshCw className="w-5 h-5 text-gray-700 flex-shrink-0" />
+            <div>
+              <h3 className="font-medium text-sm text-gray-900">Easy Returns</h3>
+              <p className="text-xs text-gray-500">30-day guarantee</p>
+            </div>
+          </div>
+          <div className="flex items-start gap-3 p-4 bg-gray-50 rounded-xl hover:shadow-md transition-all hover:-translate-y-1">
+            <HeadphonesIcon className="w-5 h-5 text-gray-700 flex-shrink-0" />
+            <div>
+              <h3 className="font-medium text-sm text-gray-900">24/7 Support</h3>
+              <p className="text-xs text-gray-500">Dedicated help</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Categories Section - Clean Cards */}
+        <div>
+          <div className="flex justify-between items-center mb-6">
+            <h2 className="text-xl font-semibold text-gray-900">Shop by Category</h2>
+            <button 
+              onClick={() => setActiveTab("products")}
+              className="text-sm text-gray-500 hover:text-gray-700 flex items-center gap-1"
+            >
+              View all <ChevronRight className="w-4 h-4" />
+            </button>
+          </div>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            {categories.slice(0, 4).map((category) => {
+              const count = products.filter(p => p.category === category).length;
+              return (
+                <button
+                  key={category}
+                  onClick={() => {
+                    setSelectedCategory(category);
+                    setActiveTab("products");
+                  }}
+                  className="group relative bg-white border border-gray-200 rounded-xl p-5 text-left hover:shadow-md transition-all hover:-translate-y-1"
+                >
+                  <div className="text-3xl mb-3 opacity-20 group-hover:opacity-30 transition-opacity">
+                    📦
+                  </div>
+                  <h3 className="font-medium text-gray-900 mb-1">{category}</h3>
+                  <p className="text-xs text-gray-500">{count} items</p>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* New Arrivals Section */}
+        <div id="featured-products">
+          <div className="flex items-center gap-2 mb-6">
+            <Clock className="w-5 h-5 text-gray-700" />
+            <h2 className="text-xl font-semibold text-gray-900">New Arrivals</h2>
+          </div>
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            {newArrivals.map((product) => (
+              <div
+                key={product.id}
+                className="group bg-white border border-gray-200 rounded-xl overflow-hidden hover:shadow-lg transition-all hover:-translate-y-1"
+              >
+                <div className="aspect-square bg-gray-50 relative">
+                  {product.image_url ? (
+                    <img
+                      src={product.image_url}
+                      alt={product.name}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center">
+                      <Package className="w-10 h-10 text-gray-300" />
+                    </div>
+                  )}
+                  <button
+                    onClick={() => setSelectedProduct(product)}
+                    className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"
+                  >
+                    <span className="bg-white text-gray-900 text-xs px-3 py-2 rounded-lg shadow-lg">
+                      Quick View
+                    </span>
+                  </button>
+                </div>
+                <div className="p-3">
+                  <h3 className="font-medium text-sm text-gray-900 mb-1 line-clamp-1">
+                    {product.name}
+                  </h3>
+                  <p className="text-xs text-gray-500 mb-2">{product.category || 'Uncategorized'}</p>
+                  <div className="flex items-center justify-between">
+                    <span className="text-base font-bold text-gray-900">
+                      ${product.sell_price}
+                    </span>
+                    <button
+                      onClick={() => addToCart(product)}
+                      disabled={product.stock === 0}
+                      className={`px-3 py-1 text-xs rounded-lg font-medium transition-colors ${
+                        product.stock > 0
+                          ? 'bg-gray-900 text-white hover:bg-gray-800'
+                          : 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                      }`}
+                    >
+                      Add
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Popular Products Section */}
+        <div>
+          <div className="flex items-center gap-2 mb-6">
+            <TrendingUp className="w-5 h-5 text-gray-700" />
+            <h2 className="text-xl font-semibold text-gray-900">Most Popular</h2>
+          </div>
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            {popularProducts.map((product) => (
+              <div
+                key={product.id}
+                className="group bg-white border border-gray-200 rounded-xl overflow-hidden hover:shadow-lg transition-all hover:-translate-y-1"
+              >
+                <div className="aspect-square bg-gray-50 relative">
+                  {product.image_url ? (
+                    <img
+                      src={product.image_url}
+                      alt={product.name}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center">
+                      <Package className="w-10 h-10 text-gray-300" />
+                    </div>
+                  )}
+                  <button
+                    onClick={() => setSelectedProduct(product)}
+                    className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"
+                  >
+                    <span className="bg-white text-gray-900 text-xs px-3 py-2 rounded-lg shadow-lg">
+                      Quick View
+                    </span>
+                  </button>
+                </div>
+                <div className="p-3">
+                  <h3 className="font-medium text-sm text-gray-900 mb-1 line-clamp-1">
+                    {product.name}
+                  </h3>
+                  <p className="text-xs text-gray-500 mb-2">{product.category || 'Uncategorized'}</p>
+                  <div className="flex items-center justify-between">
+                    <span className="text-base font-bold text-gray-900">
+                      ${product.sell_price}
+                    </span>
+                    <button
+                      onClick={() => addToCart(product)}
+                      disabled={product.stock === 0}
+                      className={`px-3 py-1 text-xs rounded-lg font-medium transition-colors ${
+                        product.stock > 0
+                          ? 'bg-gray-900 text-white hover:bg-gray-800'
+                          : 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                      }`}
+                    >
+                      Add
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* CTA Banner - Minimal */}
+        <div className="bg-gray-900 rounded-2xl overflow-hidden">
+          <div className="px-6 py-8 text-center">
+            <Star className="w-8 h-8 text-yellow-400 mx-auto mb-3" />
+            <h3 className="text-xl font-semibold text-white mb-2">Ready to start shopping?</h3>
+            <p className="text-gray-400 text-sm mb-4">Browse our collection of premium products</p>
+            <button
+              onClick={() => setActiveTab("products")}
+              className="px-6 py-2 bg-white text-gray-900 rounded-full text-sm font-medium hover:bg-gray-100 transition-colors"
+            >
+              Explore All Products
+            </button>
+          </div>
         </div>
       </div>
-    </div>
-  );
+    );
+  };
 
   // Product Details Modal
   if (selectedProduct) {
