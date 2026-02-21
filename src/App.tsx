@@ -3,26 +3,23 @@ import { getProducts, createOrder, type Product } from "./lib/db";
 import {
   ShoppingCart,
   X,
-  Plus,
-  Minus,
   Package,
   ArrowLeft,
   Trash2,
-  Search,
-  Filter,
-  Eye,
+  Plus,
+  Minus,
   ChevronLeft,
   ChevronRight,
-  TrendingUp,
-  Clock,
-  Truck,
-  Shield,
-  RefreshCw,
-  HeadphonesIcon,
-  Tag,
-  Menu,
+  Filter,
   Sliders,
+  Search,
+  Check,
+  Phone,
 } from "lucide-react";
+import { Header } from "./components/Header";
+import { Footer } from "./components/Footer";
+import { HomeView } from "./components/HomeView";
+import { ProductCard, ProductSkeleton } from "./components/ProductCard";
 
 interface CartItem {
   product: Product;
@@ -115,12 +112,6 @@ function Store() {
       result = result.filter((p) => p.stock > 0);
     }
 
-    // Apply ratings filter (simulated - you may want to add a real rating field to your products)
-    if (selectedRatings.length > 0) {
-      // This is a placeholder - you'd need to add a rating field to your Product type
-      // For now, we'll skip this filter
-    }
-
     // Apply search filter
     if (searchQuery.trim() !== "") {
       const query = searchQuery.toLowerCase();
@@ -157,7 +148,6 @@ function Store() {
     selectedCategory,
     selectedPriceRange,
     inStockOnly,
-    selectedRatings,
     searchQuery,
     sortBy,
   ]);
@@ -170,7 +160,6 @@ function Store() {
   // Scroll to top when switching to products tab
   useEffect(() => {
     if (activeTab === "products" && productsSectionRef.current) {
-      // Small delay to ensure DOM is ready
       setTimeout(() => {
         productsSectionRef.current?.scrollIntoView({
           behavior: "smooth",
@@ -187,7 +176,6 @@ function Store() {
       const existing = prevCart.find((item) => item.product.id === product.id);
       const currentQuantity = existing ? existing.quantity : 0;
 
-      // Check if adding one more would exceed stock
       if (currentQuantity + 1 > product.stock) {
         setStockError(
           `Désolé, seulement ${product.stock} article(s) disponible(s) pour "${product.name}"`,
@@ -263,7 +251,6 @@ function Store() {
     e.preventDefault();
     if (cart.length === 0) return;
 
-    // Validate stock before placing orders
     if (!validateStock()) {
       return;
     }
@@ -313,7 +300,7 @@ function Store() {
         : [...prev, category],
     );
   };
-  // Navigate between products in details view
+
   const navigateProduct = (direction: "prev" | "next") => {
     if (!selectedProduct) return;
     const currentIndex = filteredProducts.findIndex(
@@ -329,15 +316,17 @@ function Store() {
     }
   };
 
-  // Handle navigation to products with loading skeleton
   const handleNavigateToProducts = () => {
     setIsNavigating(true);
     setActiveTab("products");
 
-    // Show loading skeleton for 1 second
     setTimeout(() => {
       setIsNavigating(false);
     }, 1000);
+  };
+
+  const handleCategorySelect = (category: string) => {
+    setSelectedCategory([category]);
   };
 
   if (loading) {
@@ -352,459 +341,6 @@ function Store() {
       </div>
     );
   }
-
-  // Header Component
-  const Header = () => (
-    <header className="sticky top-0 z-50 bg-white border-b border-gray-200 px-4 md:px-6 py-3">
-      <div className="max-w-7xl mx-auto">
-        <div className="flex items-center justify-between">
-          {/* Logo */}
-          <div className="flex items-center gap-2">
-            <Package className="w-6 h-6 text-[#0e71b4]" />
-            <h1 className="text-xl font-bold text-[#0e71b4]">Shop.tn</h1>
-          </div>
-
-          {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center gap-1">
-            <button
-              onClick={() => {
-                setActiveTab("home");
-                setMobileMenuOpen(false);
-              }}
-              className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
-                activeTab === "home"
-                  ? "bg-[#0e71b4] text-white"
-                  : "text-gray-600 hover:bg-gray-100"
-              }`}
-            >
-              Accueil
-            </button>
-            <button
-              onClick={() => {
-                handleNavigateToProducts();
-                setMobileMenuOpen(false);
-              }}
-              className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
-                activeTab === "products"
-                  ? "bg-[#0e71b4] text-white"
-                  : "text-gray-600 hover:bg-gray-100"
-              }`}
-            >
-              Boutique
-            </button>
-          </nav>
-
-          {/* Right side - Cart & Mobile menu button */}
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => setShowCart(!showCart)}
-              className="relative p-2 bg-[#ff5851] text-white rounded-full hover:bg-[#e04a44] transition-colors"
-            >
-              <ShoppingCart className="w-5 h-5" />
-              {cartCount > 0 && (
-                <span className="absolute -top-1 -right-1 bg-white text-[#ff5851] text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center shadow-md">
-                  {cartCount}
-                </span>
-              )}
-            </button>
-
-            {/* Mobile menu button */}
-            <button
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="md:hidden p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
-            >
-              <Menu className="w-5 h-5" />
-            </button>
-          </div>
-        </div>
-
-        {/* Mobile Navigation Menu */}
-        {mobileMenuOpen && (
-          <div className="md:hidden mt-3 pt-3 border-t border-gray-100">
-            <nav className="flex flex-col space-y-1">
-              <button
-                onClick={() => {
-                  setActiveTab("home");
-                  setMobileMenuOpen(false);
-                }}
-                className={`px-4 py-3 text-sm font-medium rounded-lg transition-colors text-left ${
-                  activeTab === "home"
-                    ? "bg-[#0e71b4] text-white"
-                    : "text-gray-600 hover:bg-gray-100"
-                }`}
-              >
-                Accueil
-              </button>
-              <button
-                onClick={() => {
-                  handleNavigateToProducts();
-                  setMobileMenuOpen(false);
-                }}
-                className={`px-4 py-3 text-sm font-medium rounded-lg transition-colors text-left ${
-                  activeTab === "products"
-                    ? "bg-[#0e71b4] text-white"
-                    : "text-gray-600 hover:bg-gray-100"
-                }`}
-              >
-                Boutique
-              </button>
-              
-            </nav>
-          </div>
-        )}
-      </div>
-    </header>
-  );
-
-  // Footer Component
-  const Footer = () => (
-    <footer className="bg-[#0e71b4] text-white mt-auto rounded-t-[40px]">
-      <div className="max-w-7xl mx-auto px-6 py-12">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-          <div>
-            <div className="flex items-center gap-2 text-2xl font-bold mb-4">
-              <Package className="w-6 h-6" />
-              <span>Shop.tn</span>
-            </div>
-            <p className="text-sm text-white/80 mb-4">
-              Votre destination shopping en Tunisie. Des milliers de produits
-              aux meilleurs prix, livraison rapide partout dans le pays.
-            </p>
-            <div className="flex gap-3">
-              <a href="#" className="text-white hover:text-white/80 text-xl">
-                <i className="fab fa-facebook"></i>
-              </a>
-              <a href="#" className="text-white hover:text-white/80 text-xl">
-                <i className="fab fa-instagram"></i>
-              </a>
-              <a href="#" className="text-white hover:text-white/80 text-xl">
-                <i className="fab fa-linkedin"></i>
-              </a>
-            </div>
-          </div>
-          <div>
-            <h4 className="font-semibold mb-4">LIENS UTILES</h4>
-            <ul className="space-y-2 text-sm text-white/80">
-              <li>
-                <a href="#" className="hover:text-white">
-                  À propos de Shop.tn
-                </a>
-              </li>
-              <li>
-                <a href="#" className="hover:text-white">
-                  Conditions de vente
-                </a>
-              </li>
-              <li>
-                <a href="#" className="hover:text-white">
-                  Livraison et retours
-                </a>
-              </li>
-              <li>
-                <a href="#" className="hover:text-white">
-                  Paiement sécurisé
-                </a>
-              </li>
-            </ul>
-          </div>
-          <div>
-            <h4 className="font-semibold mb-4">CATÉGORIES</h4>
-            <ul className="space-y-2 text-sm text-white/80">
-              <li>
-                <a href="#" className="hover:text-white">
-                  Électronique
-                </a>
-              </li>
-              <li>
-                <a href="#" className="hover:text-white">
-                  Mode & Accessoires
-                </a>
-              </li>
-              <li>
-                <a href="#" className="hover:text-white">
-                  Maison & Jardin
-                </a>
-              </li>
-              <li>
-                <a href="#" className="hover:text-white">
-                  Sports & Loisirs
-                </a>
-              </li>
-            </ul>
-          </div>
-          <div>
-            <h4 className="font-semibold mb-4">CONTACT</h4>
-            <ul className="space-y-2 text-sm text-white/80">
-              <li>
-                <i className="fas fa-envelope mr-2"></i> service@shop.tn
-              </li>
-              <li>
-                <i className="fas fa-map-marker-alt mr-2"></i> Tunis, Tunisie
-              </li>
-            </ul>
-          </div>
-        </div>
-        <div className="text-center mt-12 pt-8 border-t border-white/20 text-sm text-white/70">
-          Shop.tn © 2026 - Tous droits réservés
-        </div>
-      </div>
-    </footer>
-  );
-
-  // Hero Section with your Shop.tn content
-  const HeroSection = () => (
-    <section className="flex items-center justify-between gap-10 flex-wrap py-16 px-6 md:px-12 lg:px-20 bg-white">
-      {/* Left side - Illustration */}
-      <div className="flex-1 min-w-[280px]">
-        <img
-          src="/image.png"
-          alt="Shopping illustration"
-          className="w-full max-w-[500px] mx-auto"
-        />
-      </div>
-
-      {/* Right side - Content */}
-      <div className="flex-1 min-w-[280px]">
-        <h2 className="text-2xl md:text-3xl font-bold text-[#1a5fb4] mb-5">
-          Faites vos achats en toute simplicité sur Shop.tn
-        </h2>
-
-        <p className="text-base text-gray-600 leading-relaxed mb-8">
-          <strong>Shop.tn</strong> est la plateforme de shopping en ligne leader
-          en Tunisie. Découvrez des milliers de produits aux meilleurs prix, des
-          promotions exclusives et une livraison rapide dans tout le pays. Votre
-          satisfaction est notre priorité.
-        </p>
-
-        <button
-          onClick={handleNavigateToProducts}
-          className="bg-[#5ed46a] text-white border-none py-3.5 px-7 rounded-full text-base font-semibold cursor-pointer hover:bg-[#4cb856] transition-colors shadow-md"
-        >
-          Découvrir nos produits
-        </button>
-      </div>
-    </section>
-  );
-
-  // Home View with Shop.tn content
-  const HomeView = () => {
-    const featuredProducts = products.slice(0, 4);
-    const popularProducts = products.slice(4, 8);
-
-    return (
-      <div className="space-y-12 pb-8">
-        <HeroSection />
-
-        {/* Features Section */}
-        <div className="max-w-7xl mx-auto px-6">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div className="flex items-start gap-3 p-4 bg-gray-50 rounded-xl hover:shadow-md transition-all">
-              <Truck className="w-5 h-5 text-[#0e71b4] flex-shrink-0" />
-              <div>
-                <h3 className="font-medium text-sm text-gray-900">
-                  Livraison gratuite
-                </h3>
-                <p className="text-xs text-gray-500">Dès 50 TND d'achat</p>
-              </div>
-            </div>
-            <div className="flex items-start gap-3 p-4 bg-gray-50 rounded-xl hover:shadow-md transition-all">
-              <Shield className="w-5 h-5 text-[#0e71b4] flex-shrink-0" />
-              <div>
-                <h3 className="font-medium text-sm text-gray-900">
-                  Paiement sécurisé
-                </h3>
-                <p className="text-xs text-gray-500">100% sécurisé</p>
-              </div>
-            </div>
-            <div className="flex items-start gap-3 p-4 bg-gray-50 rounded-xl hover:shadow-md transition-all">
-              <RefreshCw className="w-5 h-5 text-[#0e71b4] flex-shrink-0" />
-              <div>
-                <h3 className="font-medium text-sm text-gray-900">
-                  Retours gratuits
-                </h3>
-                <p className="text-xs text-gray-500">Sous 30 jours</p>
-              </div>
-            </div>
-            <div className="flex items-start gap-3 p-4 bg-gray-50 rounded-xl hover:shadow-md transition-all">
-              <HeadphonesIcon className="w-5 h-5 text-[#0e71b4] flex-shrink-0" />
-              <div>
-                <h3 className="font-medium text-sm text-gray-900">
-                  Service client
-                </h3>
-                <p className="text-xs text-gray-500">24/7 à votre écoute</p>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Categories Section */}
-        <div className="max-w-7xl mx-auto px-6">
-          <div className="flex justify-between items-center mb-6">
-            <h2 className="text-2xl font-bold text-gray-900">Nos catégories</h2>
-            <button
-              onClick={handleNavigateToProducts}
-              className="text-sm text-gray-500 hover:text-[#0e71b4] flex items-center gap-1"
-            >
-              Voir tout <ChevronRight className="w-4 h-4" />
-            </button>
-          </div>
-
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {categories.slice(0, 4).map((category) => {
-              const count = products.filter(
-                (p) => p.category === category,
-              ).length;
-              return (
-                <button
-                  key={category}
-                  onClick={() => {
-                    setSelectedCategory([category]);
-                    handleNavigateToProducts();
-                  }}
-                  className="group bg-white border border-gray-200 rounded-xl p-5 text-left hover:shadow-lg transition-all hover:-translate-y-1"
-                >
-                  <div className="text-3xl mb-3 opacity-30 group-hover:opacity-50">
-                    📦
-                  </div>
-                  <h3 className="font-medium text-gray-900 mb-1">{category}</h3>
-                  <p className="text-xs text-gray-500">{count} articles</p>
-                </button>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* Featured Products */}
-        <div className="max-w-7xl mx-auto px-6">
-          <div className="flex items-center gap-2 mb-6">
-            <Clock className="w-5 h-5 text-[#0e71b4]" />
-            <h2 className="text-2xl font-bold text-gray-900">Nouveautés</h2>
-          </div>
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-            {featuredProducts.map((product) => (
-              <ProductCard
-                key={product.id}
-                product={product}
-                onAddToCart={addToCart}
-                onViewDetails={setSelectedProduct}
-              />
-            ))}
-          </div>
-        </div>
-
-        {/* Popular Products */}
-        <div className="max-w-7xl mx-auto px-6">
-          <div className="flex items-center gap-2 mb-6">
-            <TrendingUp className="w-5 h-5 text-[#0e71b4]" />
-            <h2 className="text-2xl font-bold text-gray-900">
-              Meilleures ventes
-            </h2>
-          </div>
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-            {popularProducts.map((product) => (
-              <ProductCard
-                key={product.id}
-                product={product}
-                onAddToCart={addToCart}
-                onViewDetails={setSelectedProduct}
-              />
-            ))}
-          </div>
-        </div>
-
-        {/* Promo Banner */}
-        <div className="max-w-7xl mx-auto px-6">
-          <div className="bg-gradient-to-r from-[#ff5851] to-[#ff8a7f] rounded-2xl overflow-hidden">
-            <div className="px-6 py-8 text-center text-white">
-              <Tag className="w-8 h-8 mx-auto mb-3" />
-              <h3 className="text-xl font-semibold mb-2">Promo du mois</h3>
-              <p className="text-white/90 text-sm mb-4">
-                -20% sur une sélection de produits avec le code SHOP20
-              </p>
-              <button className="px-6 py-2 bg-white text-[#ff5851] rounded-full text-sm font-medium hover:bg-gray-100 transition-colors">
-                J'en profite
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  };
-
-  // Product Card Component
-  const ProductCard = ({
-    product,
-    onAddToCart,
-    onViewDetails,
-  }: {
-    product: Product;
-    onAddToCart: (product: Product) => void;
-    onViewDetails: (product: Product) => void;
-  }) => (
-    <div className="group bg-white border border-gray-200 rounded-xl overflow-hidden hover:shadow-lg transition-all hover:-translate-y-1">
-      <div className="aspect-square bg-gray-50 relative">
-        {product.image_url ? (
-          <img
-            src={product.image_url}
-            alt={product.name}
-            className="w-full h-full object-cover"
-          />
-        ) : (
-          <div className="w-full h-full flex items-center justify-center">
-            <Package className="w-10 h-10 text-gray-300" />
-          </div>
-        )}
-        <button
-          onClick={() => onViewDetails(product)}
-          className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"
-        >
-          <span className="bg-white text-gray-900 text-xs px-3 py-2 rounded-lg shadow-lg flex items-center gap-1">
-            <Eye className="w-3.5 h-3.5" />
-            Aperçu
-          </span>
-        </button>
-      </div>
-      <div className="p-3">
-        <h3 className="font-medium text-sm text-gray-900 mb-1 line-clamp-1">
-          {product.name}
-        </h3>
-        <p className="text-xs text-gray-500 mb-2">
-          {product.category || "Non catégorisé"}
-        </p>
-        <div className="flex items-center justify-between">
-          <span className="text-base font-bold text-gray-900">
-            {product.sell_price} TND
-          </span>
-          <button
-            onClick={() => onAddToCart(product)}
-            disabled={product.stock === 0}
-            className={`px-3 py-1 text-xs rounded-lg font-medium transition-colors ${
-              product.stock > 0
-                ? "bg-[#0e71b4] text-white hover:bg-[#1192e8]"
-                : "bg-gray-100 text-gray-400 cursor-not-allowed"
-            }`}
-          >
-            {product.stock > 0 ? "Ajouter" : "Rupture"}
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-
-  // Loading Skeleton Component
-  const ProductSkeleton = () => (
-    <div className="bg-white border border-gray-200 rounded-xl overflow-hidden animate-pulse">
-      <div className="aspect-square bg-gray-200"></div>
-      <div className="p-4">
-        <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
-        <div className="h-3 bg-gray-200 rounded w-1/2 mb-3"></div>
-        <div className="flex justify-between items-center">
-          <div className="h-5 bg-gray-200 rounded w-16"></div>
-          <div className="h-8 bg-gray-200 rounded w-20"></div>
-        </div>
-      </div>
-    </div>
-  );
 
   // Filters Sidebar Component
   const FiltersSidebar = () => (
@@ -830,28 +366,40 @@ function Store() {
         </div>
 
         {/* Search Filter */}
-        <div className="mb-6">
-    
-          {/* Categories list with improved scrolling */}
+        <div className="mb-5">
+          <label className="text-xs font-medium text-gray-700 mb-2 block">
+            Recherche
+          </label>
+          <div className="relative">
+            <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 w-3.5 h-3.5 text-gray-400" />
+            <input
+              type="text"
+              placeholder="Nom du produit..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-8 pr-2 py-2 text-xs border border-gray-200 rounded-lg focus:outline-none focus:border-[#0e71b4]"
+            />
+          </div>
+        </div>
+
+        {/* Categories Filter */}
+        <div className="mb-5">
+          <label className="text-xs font-medium text-gray-700 mb-2 block">
+            Catégories
+          </label>
           <div className="space-y-1.5 max-h-48 overflow-y-auto pr-1 custom-scrollbar">
             {categories.map((category) => (
               <label
                 key={category}
-                className="flex items-center gap-2 cursor-pointer group px-1 py-1.5 
-                   hover:bg-gray-50 rounded-lg transition-colors"
+                className="flex items-center gap-2 cursor-pointer group px-1 py-1.5 hover:bg-gray-50 rounded-lg transition-colors"
               >
                 <input
                   type="checkbox"
                   checked={selectedCategory.includes(category)}
                   onChange={() => handleCategoryChange(category)}
-                  className="rounded border-gray-300 text-[#0e71b4] 
-                     focus:ring-[#0e71b4] focus:ring-offset-0 
-                     transition-colors"
+                  className="rounded border-gray-300 text-[#0e71b4] focus:ring-[#0e71b4] focus:ring-offset-0 transition-colors"
                 />
-                <span
-                  className="flex-1 text-xs text-gray-600 group-hover:text-gray-900 
-                       font-medium truncate"
-                >
+                <span className="flex-1 text-xs text-gray-600 group-hover:text-gray-900 font-medium truncate">
                   {category}
                 </span>
                 <span className="text-xs text-gray-400 bg-gray-100 px-1.5 py-0.5 rounded-full">
@@ -860,8 +408,6 @@ function Store() {
               </label>
             ))}
           </div>
-
-          {/* Quick actions */}
           <div className="flex items-center gap-2 mt-3 pt-2 border-t border-gray-100">
             <button
               onClick={() => setSelectedCategory([])}
@@ -869,18 +415,9 @@ function Store() {
             >
               Tout effacer
             </button>
-            {selectedCategory.length > 0 && (
-              <button
-                onClick={() => {
-                  /* Select all categories */
-                }}
-                className="text-xs text-gray-500 hover:text-[#0e71b4] transition-colors"
-              >
-                Tout sélectionner
-              </button>
-            )}
           </div>
         </div>
+
         {/* In Stock Only Filter */}
         <div className="mb-5">
           <label className="flex items-center gap-2 cursor-pointer">
@@ -970,7 +507,6 @@ function Store() {
                 </button>
               </div>
 
-              {/* Same filter content as sidebar */}
               <div className="space-y-5">
                 {/* Search Filter */}
                 <div>
@@ -1013,6 +549,7 @@ function Store() {
                     ))}
                   </div>
                 </div>
+
                 {/* In Stock Only */}
                 <div>
                   <label className="flex items-center gap-2 cursor-pointer">
@@ -1027,7 +564,6 @@ function Store() {
                     </span>
                   </label>
                 </div>
-
 
                 {/* Action Buttons */}
                 <div className="flex gap-2 pt-3">
@@ -1056,7 +592,14 @@ function Store() {
   if (selectedProduct) {
     return (
       <div className="min-h-screen bg-[#f8fafc] flex flex-col">
-        <Header />
+        <Header
+          activeTab={activeTab}
+          cartCount={cartCount}
+          mobileMenuOpen={mobileMenuOpen}
+          onTabChange={setActiveTab}
+          onCartClick={() => setShowCart(true)}
+          onMobileMenuToggle={() => setMobileMenuOpen(!mobileMenuOpen)}
+        />
 
         <main className="flex-1 max-w-4xl w-full mx-auto px-4 py-6">
           <button
@@ -1220,7 +763,14 @@ function Store() {
   if (showCart) {
     return (
       <div className="min-h-screen bg-[#f8fafc] flex flex-col">
-        <Header />
+        <Header
+          activeTab={activeTab}
+          cartCount={cartCount}
+          mobileMenuOpen={mobileMenuOpen}
+          onTabChange={setActiveTab}
+          onCartClick={() => setShowCart(false)}
+          onMobileMenuToggle={() => setMobileMenuOpen(!mobileMenuOpen)}
+        />
 
         <main className="flex-1 max-w-7xl w-full mx-auto px-4 py-6">
           <button
@@ -1236,9 +786,43 @@ function Store() {
           </h2>
 
           {orderSuccess && (
-            <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg text-sm text-green-600">
-              <i className="fas fa-check-circle mr-2"></i>
-              Commande confirmée ! Merci pour votre achat.
+            <div className="mb-4 p-4 bg-gradient-to-r from-[#27ae60] to-[#2ecc71] border border-green-200 rounded-lg shadow-lg animate-slide-down">
+              <div className="flex items-start gap-3">
+                <div className="bg-white rounded-full p-1">
+                  <Check className="w-5 h-5 text-[#27ae60]" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="font-semibold text-white text-base mb-1">
+                    Commande confirmée avec succès! 🎉
+                  </h3>
+                  <p className="text-white/90 text-sm mb-2">
+                    Merci pour votre achat,{" "}
+                    <span className="font-semibold">{customerName}</span>!
+                  </p>
+                  <p className="text-white/90 text-sm flex items-center gap-1">
+                    <Phone className="w-3.5 h-3.5" />
+                    Un conseiller vous contactera dans les plus brefs délais au{" "}
+                    <span className="font-semibold">{customerPhone}</span>
+                  </p>
+                  <p className="text-white/80 text-xs mt-2 border-t border-white/20 pt-2">
+                    ⏱️ Délai de livraison estimé : 24h - 48h
+                  </p>
+                </div>
+                <button
+                  onClick={() => {
+                    setOrderSuccess(false);
+                    setCart([]);
+                    setShowCart(false);
+                    setCustomerName("");
+                    setCustomerPhone("");
+                    setCustomerLocation("");
+                    setStockError(null);
+                  }}
+                  className="text-white/70 hover:text-white transition-colors"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
             </div>
           )}
 
@@ -1275,7 +859,15 @@ function Store() {
                     >
                       <div className="flex gap-4">
                         <div className="w-20 h-20 bg-gray-100 rounded-lg flex items-center justify-center">
-                          <Package className="w-8 h-8 text-gray-400" />
+                          {item.product.image_url ? (
+                            <img
+                              src={item.product.image_url}
+                              alt={item.product.name}
+                              className="w-full h-full object-cover rounded-lg"
+                            />
+                          ) : (
+                            <Package className="w-8 h-8 text-gray-400" />
+                          )}
                         </div>
                         <div className="flex-1">
                           <div className="flex justify-between items-start">
@@ -1427,12 +1019,32 @@ function Store() {
   // Products view
   return (
     <div className="min-h-screen bg-[#f8fafc] flex flex-col">
-      <Header />
+      <Header
+        activeTab={activeTab}
+        cartCount={cartCount}
+        mobileMenuOpen={mobileMenuOpen}
+        onTabChange={(tab) => {
+          if (tab === "products") {
+            handleNavigateToProducts();
+          } else {
+            setActiveTab(tab);
+          }
+        }}
+        onCartClick={() => setShowCart(true)}
+        onMobileMenuToggle={() => setMobileMenuOpen(!mobileMenuOpen)}
+      />
       <MobileFiltersDrawer />
 
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 py-6">
         {activeTab === "home" ? (
-          <HomeView />
+          <HomeView
+            products={products}
+            categories={categories}
+            onProductAdd={addToCart}
+            onProductView={setSelectedProduct}
+            onNavigateToProducts={handleNavigateToProducts}
+            onCategorySelect={handleCategorySelect}
+          />
         ) : (
           <>
             <div ref={productsSectionRef} className="scroll-mt-20">
@@ -1486,8 +1098,8 @@ function Store() {
                 {/* Product Grid */}
                 <div className="flex-1">
                   {isNavigating ? (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                      {[...Array(8)].map((_, index) => (
+                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2 sm:gap-3">
+                      {[...Array(15)].map((_, index) => (
                         <ProductSkeleton key={index} />
                       ))}
                     </div>
@@ -1505,83 +1117,15 @@ function Store() {
                       </button>
                     </div>
                   ) : (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2 sm:gap-3">
                       {filteredProducts.map((product) => (
-                        <div
+                        <ProductCard
                           key={product.id}
-                          className="bg-white border border-gray-200 rounded-xl overflow-hidden hover:shadow-lg transition-all"
-                        >
-                          <div className="aspect-square bg-gray-50 flex items-center justify-center relative group">
-                            {product.image_url ? (
-                              <img
-                                src={product.image_url}
-                                alt={product.name}
-                                className="w-full h-full object-cover"
-                              />
-                            ) : (
-                              <Package className="w-10 h-10 text-gray-300" />
-                            )}
-
-                            {/* View Details Overlay */}
-                            <button
-                              onClick={() => setSelectedProduct(product)}
-                              className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-40 transition-all flex items-center justify-center opacity-0 group-hover:opacity-100"
-                            >
-                              <span className="bg-white text-gray-800 text-xs px-4 py-2 rounded-lg shadow-lg flex items-center gap-1">
-                                <Eye className="w-3.5 h-3.5" />
-                                Détails
-                              </span>
-                            </button>
-                          </div>
-
-                          <div className="p-4">
-                            <div className="flex items-center justify-between mb-2">
-                              <h3 className="font-medium text-gray-800 line-clamp-1">
-                                {product.name}
-                              </h3>
-                              <button
-                                onClick={() => setSelectedProduct(product)}
-                                className="text-gray-400 hover:text-[#0e71b4]"
-                              >
-                                <Eye className="w-4 h-4" />
-                              </button>
-                            </div>
-
-                            {product.category && (
-                              <span className="text-xs text-gray-400 mb-2 block">
-                                {product.category}
-                              </span>
-                            )}
-
-                            <div className="flex items-center justify-between mb-3">
-                              <span className="text-lg font-bold text-[#0e71b4]">
-                                {product.sell_price} TND
-                              </span>
-                              <span
-                                className={`text-xs px-2 py-1 rounded-full ${
-                                  product.stock > 0
-                                    ? "bg-green-50 text-green-600"
-                                    : "bg-red-50 text-red-500"
-                                }`}
-                              >
-                                {product.stock > 0 ? "En stock" : "Rupture"}
-                              </span>
-                            </div>
-
-                            <button
-                              onClick={() => addToCart(product)}
-                              disabled={product.stock === 0}
-                              className={`w-full py-2 text-sm rounded-lg font-medium transition-colors flex items-center justify-center gap-1 ${
-                                product.stock > 0
-                                  ? "bg-[#0e71b4] text-white hover:bg-[#1192e8]"
-                                  : "bg-gray-100 text-gray-400 cursor-not-allowed"
-                              }`}
-                            >
-                              <ShoppingCart className="w-4 h-4" />
-                              Ajouter au panier
-                            </button>
-                          </div>
-                        </div>
+                          product={product}
+                          onAddToCart={addToCart}
+                          onViewDetails={setSelectedProduct}
+                          variant="compact"
+                        />
                       ))}
                     </div>
                   )}
