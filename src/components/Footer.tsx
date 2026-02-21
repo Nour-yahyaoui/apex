@@ -78,7 +78,7 @@ export function Footer() {
         <div className="text-center mt-12 pt-8 border-t border-white/20 text-sm text-white/70">
           Shop.tn © {currentYear} - Tous droits réservés 
           <br className="block sm:hidden" /> 
-          Created by Nour yahyaoui in{" "}
+         {" "}
           <Calendar className="inline w-3 h-3 mr-1" />
           <span className="font-medium">{fullDate}</span>
         </div>
